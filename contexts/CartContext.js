@@ -46,6 +46,11 @@ export const CartProvider = ({ children }) => {
     );
   };
 
+  // **New Function: Remove Item Completely**
+  const removeItem = (id) => {
+    setCart((prevCart) => prevCart.filter((item) => item.id !== id));
+  };
+
   // Function to clear the cart (optional)
   const clearCart = () => {
     setCart([]);
@@ -58,6 +63,7 @@ export const CartProvider = ({ children }) => {
         addToCart,
         increaseQuantity,
         decreaseQuantity,
+        removeItem, // Provide the removeItem function
         clearCart,
       }}
     >
