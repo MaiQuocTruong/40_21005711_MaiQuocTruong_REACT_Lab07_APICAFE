@@ -11,12 +11,11 @@ import {
 } from 'react-native';
 import minusImage from '../assets/minus_18.png'; 
 import plusImage from '../assets/plus8.png';  
-import { CartContext } from '../contexts/CartContext'; // Adjust path if necessary
+import { CartContext } from '../contexts/CartContext';
 
 export default function CartScreen() {
-  const { cart, increaseQuantity, decreaseQuantity, removeItem } = useContext(CartContext); // Access functions from context
+  const { cart, increaseQuantity, decreaseQuantity, removeItem } = useContext(CartContext); 
 
-  // State for Modal
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const fadeAnim = useState(new Animated.Value(0))[0];
@@ -86,9 +85,11 @@ export default function CartScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Đơn Hàng Của Bạn</Text>
+      <View style={styles.header}>
+         <Text style={styles.headerTitle}>Your Orders</Text>
+      </View>
       {cart.length === 0 ? (
-        <Text style={styles.emptyCartText}>Giỏ hàng của bạn đang trống.</Text>
+        <Text style={styles.emptyCartText}>Your cart is empty.</Text>
       ) : (
         <FlatList
           data={cart}
@@ -96,10 +97,11 @@ export default function CartScreen() {
           renderItem={renderCartItem}
         />
       )}
+
       <View style={styles.footer}>
         <View style={styles.dashedLine} />
         <View style={styles.totalContainer}>
-          <Text style={styles.totalText}>Tổng:</Text>
+          <Text style={styles.totalText}>Total:</Text>
           <Text style={styles.totalAmount}>$ {total.toFixed(2)}</Text>
         </View>
         <TouchableOpacity style={styles.checkoutButton} onPress={() => {/* Implement checkout logic */}}>
@@ -107,7 +109,7 @@ export default function CartScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Confirmation Modal */}
+      {/* Modal */}
       <Modal
         transparent={true}
         animationType="none" // Set to none for custom animation
@@ -144,9 +146,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   header: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 10,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
   },
   cartItem: {
     flexDirection: 'row',
@@ -157,6 +164,8 @@ const styles = StyleSheet.create({
     padding: 20,
     position: 'relative', 
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#cccccc',
   },
   image: {
     position: 'absolute', 
@@ -246,7 +255,7 @@ const styles = StyleSheet.create({
   // Modal Styles
   modalBackground: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)', // Semi-transparent background
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },

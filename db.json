@@ -26,6 +26,15 @@
       "address": "1167 GE 54 St",
       "image": "https://s3-media0.fl.yelpcdn.com/bphoto/9IwixqkZvUb5k_z4sbLFvQ/o.jpg",
       "isAvailable": false
+    },
+    {
+      "id": 4,
+      "name": "Trung Nguyen Legend Cafe",
+      "status": "Accepting Orders",
+      "delivery_time": "5-10 minutes",
+      "address": "506 – 508 – 510 Võ Văn Kiệt",
+      "image": "https://vnn-imgs-f.vgcloud.vn/2018/08/08/16/trung-nguyen-1.jpg",
+      "isAvailable": true
     }
   ],
   "drinks": [
@@ -67,12 +76,6 @@
     },
     {
       "id": 7,
-      "name": "Culi",
-      "price": 0,
-      "image": "https://bizweb.dktcdn.net/100/270/753/files/ly-ca-phe-culi-768x432.jpg?v=1651055788117"
-    },
-    {
-      "id": 8,
       "name": "Catimor",
       "price": 9,
       "image": "https://hotaircoffee.com/wp-content/uploads/2022/02/nuoc-ca-phe-catimor.jpg"

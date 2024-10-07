@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Modal, Button } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Modal, Button, TextInput, FlatList } from 'react-native';
 import axios from 'axios';
 import { MaterialIcons, FontAwesome } from '@expo/vector-icons';
 
 const ShopsNearMe = ({ navigation }) => {
   const [shops, setShops] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [searchInput, setSearchInput] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     axios.get('http://localhost:5000/shops')
@@ -21,34 +23,58 @@ const ShopsNearMe = ({ navigation }) => {
     }
   };
 
+  const filteredShops = shops.filter(shop =>
+    shop.name.toLowerCase().includes(searchInput.toLowerCase())
+  );
+
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Shops Near Me</Text>
+        <TouchableOpacity 
+          style={styles.searchButton} 
+          onPress={() => setIsSearching(!isSearching)}
+        >
+          <FontAwesome name="search" size={20} color="#000" />
+        </TouchableOpacity>
+      </View>
+
+      {isSearching && (
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Tìm kiếm cửa hàng..."
+          value={searchInput}
+          onChangeText={setSearchInput}
+        />
+      )}
+
       <ScrollView style={{ width: "100%", height: 500 }}>
-        <View style={styles.searchContainer}>
-          <FontAwesome name="search" size={24} color="gray" />
-        </View>
-        {shops.map((shop) => (
-          <TouchableOpacity key={shop.id} style={styles.shopCard} onPress={() => handleShopPress(shop)}>
-            <Image source={{ uri: shop.image }} style={styles.shopImage} />
-            <View style={styles.shopInfo}>
-              <View style={styles.statusAndTime}>
-                <Text style={shop.isAvailable ? styles.statusAvailable : styles.statusUnavailable}>
-                  <MaterialIcons name={shop.isAvailable ? "check-circle" : "lock"} size={16} color={shop.isAvailable ? "green" : "red"} />
-                  {` ${shop.status}`} 
-                </Text>
-                <Text style={styles.deliveryTime}>
-                  <FontAwesome name="clock-o" size={16} color="green" />
-                  {` ${shop.delivery_time}`}
-                </Text>
-                <View style={styles.locationContainer}>
-                  <FontAwesome name="map-marker" size={20} color="green" />
+        <FlatList
+          data={filteredShops}
+          keyExtractor={item => item.id.toString()}
+          renderItem={({ item }) => (
+            <TouchableOpacity style={styles.shopCard} onPress={() => handleShopPress(item)}>
+              <Image source={{ uri: item.image }} style={styles.shopImage} />
+              <View style={styles.shopInfo}>
+                <View style={styles.statusAndTime}>
+                  <Text style={item.isAvailable ? styles.statusAvailable : styles.statusUnavailable}>
+                    <MaterialIcons name={item.isAvailable ? "check-circle" : "lock"} size={16} color={item.isAvailable ? "green" : "red"} />
+                    {` ${item.status}`} 
+                  </Text>
+                  <Text style={styles.deliveryTime}>
+                    <FontAwesome name="clock-o" size={16} color="green" />
+                    {` ${item.delivery_time}`}
+                  </Text>
+                  <View style={styles.locationContainer}>
+                    <FontAwesome name="map-marker" size={20} color="green" />
+                  </View>
                 </View>
+                <Text style={styles.shopName}>{item.name}</Text>
+                <Text style={styles.shopAddress}>{item.address}</Text>
               </View>
-              <Text style={styles.shopName}>{shop.name}</Text>
-              <Text style={styles.shopAddress}>{shop.address}</Text>
-            </View>
-          </TouchableOpacity>
-        ))}
+            </TouchableOpacity>
+          )}
+        />
       </ScrollView>
 
       {/* Modal for unavailable shop */}
@@ -74,9 +100,37 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     padding: 20,
   },
-  searchContainer: {
-    alignSelf: 'flex-end',
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 10,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  searchButton: {
+    padding: 10,
+  },
+  searchInput: {
+    height: 40,
+    borderColor: '#ddd',
+    borderWidth: 1,
+    borderRadius: 24,
+    backgroundColor: '#fff',
+    marginBottom: 15,
+    paddingHorizontal: 15,
+    fontSize: 16,
+    color: '#333',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
   },
   shopCard: {
     backgroundColor: '#fff',
@@ -91,7 +145,7 @@ const styles = StyleSheet.create({
   },
   shopImage: {
     width: '100%',
-    height: 150, 
+    height: 150,
   },
   shopInfo: {
     padding: 10,

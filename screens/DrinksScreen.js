@@ -1,4 +1,3 @@
-// screens/DrinksScreen.js
 import React, { useEffect, useState, useContext } from 'react';
 import { 
   View, 
@@ -9,22 +8,23 @@ import {
   StyleSheet, 
   ScrollView, 
   Modal,
-  Animated
+  Animated,
+  TextInput
 } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
-
+import { MaterialIcons, FontAwesome } from '@expo/vector-icons';
 import minusImage from '../assets/minus_18.png'; 
 import plusImage from '../assets/plus8.png';  
-import { CartContext } from '../contexts/CartContext'; // Import the CartContext
+import { CartContext } from '../contexts/CartContext';
 
 export default function DrinksScreen() {
   const [drinks, setDrinks] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false); // State for search input visibility
   const navigation = useNavigation();  
 
-  const { cart, addToCart, decreaseQuantity, removeItem } = useContext(CartContext); // Access removeItem from context
-
-  // State for Modal
+  const { cart, addToCart, decreaseQuantity, removeItem } = useContext(CartContext);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const fadeAnim = useState(new Animated.Value(0))[0];
@@ -51,40 +51,37 @@ export default function DrinksScreen() {
     }
   }, [modalVisible, fadeAnim]);
 
-  // Helper function to get the quantity of a specific drink in the cart
   const getQuantity = (id) => {
     const item = cart.find(cartItem => cartItem.id === id);
     return item ? item.quantity : 0;
   };
 
-  // Handler for minus button press
   const handleMinusPress = (item) => {
     const quantity = getQuantity(item.id);
     if (quantity === 1) {
-      // Show modal to confirm removal
       setSelectedItem(item);
       setModalVisible(true);
     } else if (quantity > 1) {
       decreaseQuantity(item.id);
     }
-    // If quantity is 0, do nothing (button should be disabled)
   };
 
-  // Handler for confirming removal
   const confirmRemoval = () => {
     if (selectedItem) {
-      removeItem(selectedItem.id); // Explicitly remove the item from cart
-      setSelectedItem(null); // Reset selected item
-      // Ẩn modal ngay lập tức
+      removeItem(selectedItem.id); 
+      setSelectedItem(null); 
       setModalVisible(false); 
     }
   };
 
-  // Handler for cancelling removal
   const cancelRemoval = () => {
-    setSelectedItem(null); // Reset selected item
-    setModalVisible(false); // Ẩn modal ngay lập tức
+    setSelectedItem(null); 
+    setModalVisible(false); 
   };
+
+  const filteredDrinks = drinks.filter(drink =>
+    drink.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const renderDrinkItem = ({ item }) => (
     <View style={styles.drinkItem}>
@@ -94,16 +91,13 @@ export default function DrinksScreen() {
         <Text style={styles.price}>${item.price}</Text>
       </View>
       <View style={styles.buttons}>
-        {/* Minus Button */}
         <TouchableOpacity 
           style={styles.button}
           onPress={() => handleMinusPress(item)}
-          disabled={getQuantity(item.id) === 0} // Disable if quantity is zero
+          disabled={getQuantity(item.id) === 0}
         >
           <Image source={minusImage} style={styles.buttonImage} />
         </TouchableOpacity>
-
-        {/* Plus Button */}
         <TouchableOpacity style={styles.button} onPress={() => addToCart(item)}>
           <Image source={plusImage} style={styles.buttonImage} />
         </TouchableOpacity>
@@ -113,24 +107,44 @@ export default function DrinksScreen() {
 
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Drinks</Text>
+        <TouchableOpacity 
+          style={styles.searchButton} 
+          onPress={() => setIsSearching(!isSearching)} // Toggle search input visibility
+        >
+          <FontAwesome name="search" size={20} color="#000" />
+        </TouchableOpacity>
+      </View>
+
+      {isSearching && (
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search drinks..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+      )}
+
       <ScrollView style={{ width: "100%", height: 500 }}>
         <FlatList
-          data={drinks}
+          data={filteredDrinks}
           keyExtractor={item => item.id.toString()}
           renderItem={renderDrinkItem}
         />
       </ScrollView>
+
       <TouchableOpacity
         style={styles.cartButton}
         onPress={() => navigation.navigate('CartScreen')}  
       >
-        <Text style={styles.cartButtonText}>GO TO CART ({cart.length})</Text>
+        <Text style={styles.cartButtonText}>GO TO CART</Text>
       </TouchableOpacity>
 
       {/* Confirmation Modal */}
       <Modal
         transparent={true}
-        animationType="none" // Set to none for custom animation
+        animationType="none"
         visible={modalVisible}
         onRequestClose={cancelRemoval}
       >
@@ -163,41 +177,73 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     justifyContent: 'space-between',
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  searchButton: {
+    padding: 10,
+  },
+  searchInput: {
+    height: 40,
+    borderColor: '#ddd',
+    borderWidth: 1,
+    borderRadius: 24,
+    backgroundColor: '#fff',
+    marginBottom: 15,
+    paddingHorizontal: 15,
+    fontSize: 16,
+    color: '#333',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
   drinkItem: {
     flexDirection: 'row',
     backgroundColor: '#fff',
     marginBottom: 10,
     borderRadius: 10,
     alignItems: 'center',
-    height: 80, 
-    borderWidth: 1,            
+    height: 80,
+    borderWidth: 1,
     borderColor: '#cccccc',
-    overflow: 'hidden', 
+    overflow: 'hidden',
   },
   image: {
-    width: 80, 
-    height: 80, 
-    position: 'absolute', 
-    left: 0, 
-    top: 0, 
-    borderRadius: 10, 
+    width: 80,
+    height: 80,
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    borderRadius: 10,
   },
   info: {
     flex: 1,
-    marginLeft: 90, 
+    marginLeft: 90,
     padding: 15,
   },
   name: {
-    fontSize: 18, 
+    fontSize: 18,
     fontWeight: 'bold',
   },
   price: {
-    fontSize: 16, 
+    fontSize: 16,
     color: '#888',
   },
   buttons: {
     flexDirection: 'row',
-    width: 100, 
+    width: 100,
     justifyContent: 'space-between',
   },
   button: {
@@ -205,12 +251,12 @@ const styles = StyleSheet.create({
     padding: 5,
     borderRadius: 5,
     marginHorizontal: 5,
-    justifyContent: 'center', 
-    alignItems: 'center', 
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   buttonImage: {
     width: 20,
-    height: 20, 
+    height: 20,
   },
   cartButton: {
     marginBottom: 20,
@@ -231,7 +277,7 @@ const styles = StyleSheet.create({
   // Modal Styles
   modalBackground: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)', // Semi-transparent background
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -271,3 +317,4 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
+
