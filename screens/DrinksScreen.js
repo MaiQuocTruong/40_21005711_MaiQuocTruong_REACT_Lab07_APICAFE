@@ -1,16 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useEffect, useState, useContext } from 'react';
+import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import axios from 'axios';
-import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 
 import minusImage from '../assets/minus_18.png'; 
 import plusImage from '../assets/plus8.png';  
+import { CartContext } from '../contexts/CartContext'; // Import the CartContext
 
 export default function DrinksScreen() {
   const [drinks, setDrinks] = useState([]);
-  const [cart, setCart] = useState([]);  
   const navigation = useNavigation();  
+
+  const { cart, addToCart, decreaseQuantity } = useContext(CartContext); // Access cart, addToCart, and decreaseQuantity from context
 
   useEffect(() => {
     axios.get('http://localhost:5000/drinks')
@@ -18,20 +19,10 @@ export default function DrinksScreen() {
       .catch(error => console.error(error));
   }, []);
 
-
-  const addToCart = (item) => {
-    setCart(prevCart => {
-      const existingItem = prevCart.find(cartItem => cartItem.id === item.id);
-      if (existingItem) {
-        return prevCart.map(cartItem =>
-          cartItem.id === item.id
-            ? { ...cartItem, quantity: cartItem.quantity + 1 }
-            : cartItem
-        );
-      } else {
-        return [...prevCart, { ...item, quantity: 1 }];
-      }
-    });
+  // Helper function to get the quantity of a specific drink in the cart
+  const getQuantity = (id) => {
+    const item = cart.find(cartItem => cartItem.id === id);
+    return item ? item.quantity : 0;
   };
 
   const renderDrinkItem = ({ item }) => (
@@ -42,9 +33,16 @@ export default function DrinksScreen() {
         <Text style={styles.price}>${item.price}</Text>
       </View>
       <View style={styles.buttons}>
-        <TouchableOpacity style={styles.button}>
+        {/* Minus Button */}
+        <TouchableOpacity 
+          style={styles.button}
+          onPress={() => decreaseQuantity(item.id)}
+          disabled={getQuantity(item.id) === 0} // Disable if quantity is zero
+        >
           <Image source={minusImage} style={styles.buttonImage} />
         </TouchableOpacity>
+
+        {/* Plus Button */}
         <TouchableOpacity style={styles.button} onPress={() => addToCart(item)}>
           <Image source={plusImage} style={styles.buttonImage} />
         </TouchableOpacity>
@@ -63,9 +61,9 @@ export default function DrinksScreen() {
       </ScrollView>
       <TouchableOpacity
         style={styles.cartButton}
-        onPress={() => navigation.navigate('CartScreen', { cart })}  
+        onPress={() => navigation.navigate('CartScreen')}  
       >
-        <Text style={styles.cartButtonText}>GO TO CART</Text>
+        <Text style={styles.cartButtonText}>GO TO CART ({cart.length})</Text>
       </TouchableOpacity>
     </View>
   );

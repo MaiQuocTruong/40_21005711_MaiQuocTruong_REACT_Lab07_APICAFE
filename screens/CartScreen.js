@@ -1,32 +1,19 @@
-import React, { useState } from 'react';
+import React, { useContext } from 'react';
 import { View, Text, Image, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import minusImage from '../assets/minus_18.png'; 
 import plusImage from '../assets/plus8.png';  
+import { CartContext } from '../contexts/CartContext'; // Adjust the path as needed
 
-export default function CartScreen({ route }) {
-  const { cart: initialCart } = route.params;
-  const [cart, setCart] = useState(initialCart);
-
-  const increaseQuantity = (id) => {
-    const updatedCart = cart.map((item) =>
-      item.id === id ? { ...item, quantity: item.quantity + 1 } : item
-    );
-    setCart(updatedCart);
-  };
-
-  const decreaseQuantity = (id) => {
-    const updatedCart = cart.map((item) =>
-      item.id === id && item.quantity > 1 ? { ...item, quantity: item.quantity - 1 } : item
-    );
-    setCart(updatedCart);
-  };
+export default function CartScreen() {
+  const { cart, increaseQuantity, decreaseQuantity, clearCart } = useContext(CartContext); // Access cart and functions from context
 
   const renderCartItem = ({ item }) => (
     <View style={styles.cartItem}>
       <Image source={{ uri: item.image }} style={styles.image} />
       <View style={styles.info}>
         <Text style={styles.name}>{item.name}</Text>
-        <Text style={styles.description}>{item.description}</Text>
+        {/* If you have a description, ensure it's included in the drink items */}
+        {/* <Text style={styles.description}>{item.description}</Text> */}
         <Text style={styles.price}>${item.price}</Text>
       </View>
       <View style={styles.quantityContainer}>
@@ -46,19 +33,23 @@ export default function CartScreen({ route }) {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Your Order</Text>
-      <FlatList
-        data={cart}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={renderCartItem}
-      />
+      {cart.length === 0 ? (
+        <Text style={styles.emptyCartText}>Your cart is empty.</Text>
+      ) : (
+        <FlatList
+          data={cart}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderCartItem}
+        />
+      )}
       <View style={styles.footer}>
         <View style={styles.dashedLine} /> {/* Dashed line above total */}
         <View style={styles.totalContainer}>
           <Text style={styles.totalText}>Total:</Text>
           <Text style={styles.totalAmount}>$ {total.toFixed(2)}</Text>
         </View>
-        <TouchableOpacity style={styles.checkoutButton}>
-          <Text style={styles.checkoutButtonText}>Checkout</Text>
+        <TouchableOpacity style={styles.checkoutButton} onPress={() => {/* Implement payment logic */}}>
+          <Text style={styles.checkoutButtonText}>PAY NOW</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -168,7 +159,7 @@ const styles = StyleSheet.create({
   },
   checkoutButtonText: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '400',
     color: '#fff',
   },
 });
