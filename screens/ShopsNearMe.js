@@ -48,7 +48,7 @@ const ShopsNearMe = ({ navigation }) => {
       {isSearching && (
         <TextInput
           style={styles.searchInput}
-          placeholder="Tìm kiếm cửa hàng..."
+          placeholder="Search"
           value={searchInput}
           onChangeText={setSearchInput}
         />
