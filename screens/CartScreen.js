@@ -9,19 +9,24 @@ import {
   Modal,
   Animated
 } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import minusImage from '../assets/minus_18.png'; 
 import plusImage from '../assets/plus8.png';  
+import { useNavigation } from '@react-navigation/native';
 import { CartContext } from '../contexts/CartContext';
-
+import emptyCartImage from '../assets/cart-removebg-preview.png';
 export default function CartScreen() {
-  const { cart, increaseQuantity, decreaseQuantity, removeItem } = useContext(CartContext); 
+  const { cart, increaseQuantity, decreaseQuantity, removeItem, clearCart } = useContext(CartContext); 
 
-  const [modalVisible, setModalVisible] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);  // Modal for product removal
+  const [paymentModalVisible, setPaymentModalVisible] = useState(false); // Modal for payment confirmation
+  const [paymentSuccessModalVisible, setPaymentSuccessModalVisible] = useState(false); // Modal for payment success
+  const [emptyCartModalVisible, setEmptyCartModalVisible] = useState(false); // Modal for empty cart warning
   const [selectedItem, setSelectedItem] = useState(null);
   const fadeAnim = useState(new Animated.Value(0))[0];
-
+  const navigation = useNavigation(); 
   useEffect(() => {
-    if (modalVisible) {
+    if (modalVisible || paymentModalVisible || paymentSuccessModalVisible || emptyCartModalVisible) {
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 300,
@@ -34,12 +39,11 @@ export default function CartScreen() {
         useNativeDriver: true,
       }).start();
     }
-  }, [modalVisible, fadeAnim]);
+  }, [modalVisible, paymentModalVisible, paymentSuccessModalVisible, emptyCartModalVisible, fadeAnim]);
 
   // Handle decrease button press
   const handleDecreasePress = (item) => {
     if (item.quantity === 1) {
-      // Show confirmation modal to remove product
       setSelectedItem(item);
       setModalVisible(true);
     } else if (item.quantity > 1) {
@@ -47,7 +51,15 @@ export default function CartScreen() {
     }
   };
 
-  // Confirm removal of product
+  // Handle checkout press
+  const handleCheckoutPress = () => {
+    if (cart.length === 0) {
+      setEmptyCartModalVisible(true); // Show the empty cart modal if no products are in the cart
+    } else {
+      setPaymentModalVisible(true); // Show the payment confirmation modal if cart is not empty
+    }
+  };
+
   const confirmRemoval = () => {
     if (selectedItem) {
       removeItem(selectedItem.id); // Remove product from cart
@@ -56,10 +68,27 @@ export default function CartScreen() {
     }
   };
 
-  // Cancel removal
   const cancelRemoval = () => {
     setSelectedItem(null);
     setModalVisible(false);
+  };
+
+  const confirmPayment = () => {
+    setPaymentModalVisible(false);
+    setPaymentSuccessModalVisible(true); // Show the success modal after payment
+  };
+
+  const cancelPayment = () => {
+    setPaymentModalVisible(false); // Cancel payment
+  };
+
+  const closePaymentSuccess = () => {
+    setPaymentSuccessModalVisible(false);
+    clearCart(); // Clear the cart when payment is successful
+  };
+
+  const closeEmptyCartModal = () => {
+    setEmptyCartModalVisible(false); // Close empty cart modal
   };
 
   const renderCartItem = ({ item }) => (
@@ -86,10 +115,17 @@ export default function CartScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-         <Text style={styles.headerTitle}>Your Orders</Text>
+        {/* Back Button */}
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <MaterialIcons name="arrow-back" size={30} color="#000" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Your Orders</Text>
       </View>
       {cart.length === 0 ? (
-        <Text style={styles.emptyCartText}>Your cart is empty.</Text>
+        <View style={styles.emptyCartContainer}>
+          <Image source={emptyCartImage} style={styles.emptyCartImage} />
+          <Text style={[styles.emptyCartText, { fontSize: '20px' }]}>Your cart is empty.</Text>
+        </View>
       ) : (
         <FlatList
           data={cart}
@@ -104,30 +140,93 @@ export default function CartScreen() {
           <Text style={styles.totalText}>Total:</Text>
           <Text style={styles.totalAmount}>$ {total.toFixed(2)}</Text>
         </View>
-        <TouchableOpacity style={styles.checkoutButton} onPress={() => {/* Implement checkout logic */}}>
-          <Text style={styles.checkoutButtonText}>THANH TOÁN NGAY</Text>
+        <TouchableOpacity style={styles.checkoutButton} onPress={handleCheckoutPress}>
+          <Text style={styles.checkoutButtonText}>PAY NOW</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Modal */}
+      {/* Modal for empty cart */}
       <Modal
         transparent={true}
-        animationType="none" // Set to none for custom animation
+        animationType="none"
+        visible={emptyCartModalVisible}
+        onRequestClose={closeEmptyCartModal}
+      >
+        <Animated.View style={[styles.modalBackground, { opacity: fadeAnim }]} >
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Notification!!!</Text>
+            <Text style={styles.modalMessage}>You have no orders</Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={styles.modalButton} onPress={closeEmptyCartModal}>
+                <Text style={styles.modalButtonText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Animated.View>
+      </Modal>
+
+      {/* Modal for product removal */}
+      <Modal
+        transparent={true}
+        animationType="none"
         visible={modalVisible}
         onRequestClose={cancelRemoval}
       >
-        <Animated.View style={[styles.modalBackground, { opacity: fadeAnim }]}>
+        <Animated.View style={[styles.modalBackground, { opacity: fadeAnim }]} >
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Xác Nhận</Text>
+            <Text style={styles.modalTitle}>Confirm</Text>
             <Text style={styles.modalMessage}>
-              Bạn có muốn hủy sản phẩm "{selectedItem ? selectedItem.name : ''}" không?
+              Do you want to cancel your order "{selectedItem ? selectedItem.name : ''}"?
             </Text>
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.modalButton} onPress={confirmRemoval}>
-                <Text style={styles.modalButtonText}>Có</Text>
+                <Text style={styles.modalButtonText}>Yes</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.modalButton} onPress={cancelRemoval}>
-                <Text style={styles.modalButtonText}>Không</Text>
+              <TouchableOpacity style={styles.modalButtonNo} onPress={cancelRemoval}>
+                <Text style={styles.modalButtonTextNo}>No</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Animated.View>
+      </Modal>
+
+      {/* Modal for payment confirmation */}
+      <Modal
+        transparent={true}
+        animationType="none"
+        visible={paymentModalVisible}
+        onRequestClose={cancelPayment}
+      >
+        <Animated.View style={[styles.modalBackground, { opacity: fadeAnim }]} >
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Confirm</Text>
+            <Text style={styles.modalMessage}>Do you want to pay?</Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={styles.modalButton} onPress={confirmPayment}>
+                <Text style={styles.modalButtonText}>Yes</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalButtonNo} onPress={cancelPayment}>
+                <Text style={styles.modalButtonTextNo}>No</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Animated.View>
+      </Modal>
+
+      {/* Modal for payment success */}
+      <Modal
+        transparent={true}
+        animationType="none"
+        visible={paymentSuccessModalVisible}
+        onRequestClose={closePaymentSuccess}
+      >
+        <Animated.View style={[styles.modalBackground, { opacity: fadeAnim }]} >
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Confirm</Text>
+            <Text style={styles.modalMessage}>Successful payment of ${total.toFixed(2)}!</Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={styles.modalButton} onPress={closePaymentSuccess}>
+                <Text style={styles.modalButtonText}>Close</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -140,7 +239,7 @@ export default function CartScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f2f2f2',
+    backgroundColor: '#fff',
     paddingHorizontal: 20,
     paddingTop: 20,
     justifyContent: 'space-between',
@@ -151,9 +250,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
   },
+  backButton: {
+    padding: 10,
+    marginLeft: '-3%',
+  },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
+    marginLeft: 10,  
+    flex: 1,  
+    textAlign: 'left',
+  },
+  emptyCartContainer: {
+    alignItems: 'center',
+    marginTop: 5,
+  },
+  emptyCartImage: {
+    width: 250, 
+    height: 250,
+    marginBottom: 5,
+  },
+  emptyCartText: {
+    fontSize: 24,
+    color: '#888',
+    textAlign: 'center',
   },
   cartItem: {
     flexDirection: 'row',
@@ -288,6 +408,21 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginHorizontal: 5,
     alignItems: 'center',
+  },
+  modalButtonNo: {
+    flex: 1,
+    backgroundColor: '#fff',
+    paddingVertical: 10,
+    borderRadius: 5,
+    marginHorizontal: 5,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#cccccc',
+  },
+  modalButtonTextNo: {
+    color: '#424242',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   modalButtonText: {
     color: '#fff',

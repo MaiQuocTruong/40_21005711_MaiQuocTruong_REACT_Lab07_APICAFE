@@ -30,12 +30,18 @@ const ShopsNearMe = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={() => navigation.goBack()}
+        >
+          <MaterialIcons name="arrow-back" size={30} color="#000" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Shops Near Me</Text>
         <TouchableOpacity 
           style={styles.searchButton} 
           onPress={() => setIsSearching(!isSearching)}
         >
-          <FontAwesome name="search" size={20} color="#000" />
+          <MaterialIcons name="search" size={30} color="#000" />
         </TouchableOpacity>
       </View>
 
@@ -97,18 +103,25 @@ const ShopsNearMe = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#fff',
     padding: 20,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: 'row',  
+    alignItems: 'center',  
+    justifyContent: 'space-between', 
     marginBottom: 10,
+  },
+  backButton: {
+    padding: 10,
+    marginLeft: '-3%',
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
+    marginLeft: 10,  
+    flex: 1,  
+    textAlign: 'left',  
   },
   searchButton: {
     padding: 10,
@@ -201,5 +214,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 });
+
 
 export default ShopsNearMe;

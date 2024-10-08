@@ -108,12 +108,18 @@ export default function DrinksScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={() => navigation.goBack()} // Navigate back to previous screen
+        >
+          <MaterialIcons name="arrow-back" size={30} color="#000" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Drinks</Text>
         <TouchableOpacity 
           style={styles.searchButton} 
           onPress={() => setIsSearching(!isSearching)} // Toggle search input visibility
         >
-          <FontAwesome name="search" size={20} color="#000" />
+          <MaterialIcons name="search" size={30} color="#000" />
         </TouchableOpacity>
       </View>
 
@@ -150,16 +156,16 @@ export default function DrinksScreen() {
       >
         <Animated.View style={[styles.modalBackground, { opacity: fadeAnim }]}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Xác nhận</Text>
+            <Text style={styles.modalTitle}>Confirm</Text>
             <Text style={styles.modalMessage}>
-              Bạn muốn hủy sản phẩm "{selectedItem ? selectedItem.name : ''}" không?
+              Do you want to cancel "{selectedItem ? selectedItem.name : ''}"?
             </Text>
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.modalButton} onPress={confirmRemoval}>
                 <Text style={styles.modalButtonText}>Có</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.modalButton} onPress={cancelRemoval}>
-                <Text style={styles.modalButtonText}>Không</Text>
+              <TouchableOpacity style={styles.modalButtonNo} onPress={cancelRemoval}>
+                <Text style={styles.modalButtonTextNo}>Không</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -172,7 +178,7 @@ export default function DrinksScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f2f2f2',
+    backgroundColor: '#fff',
     paddingHorizontal: 20,
     paddingTop: 20,
     justifyContent: 'space-between',
@@ -186,9 +192,16 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
+    marginLeft: 10,  
+    flex: 1,  
+    textAlign: 'left', 
   },
   searchButton: {
     padding: 10,
+  },
+  backButton: {
+    padding: 10,
+    marginLeft: '-3%',
   },
   searchInput: {
     height: 40,
@@ -311,10 +324,24 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
     alignItems: 'center',
   },
+  modalButtonNo: {
+    flex: 1,
+    backgroundColor: '#fff',
+    paddingVertical: 10,
+    borderRadius: 5,
+    marginHorizontal: 5,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#cccccc',
+  },
   modalButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
   },
+  modalButtonTextNo: {
+    color: '#424242',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });
-
