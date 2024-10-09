@@ -9,7 +9,9 @@ import {
   ScrollView, 
   Modal,
   Animated,
-  TextInput
+  TextInput,
+  SafeAreaView,
+  Platform
 } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
@@ -106,81 +108,87 @@ export default function DrinksScreen() {
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton} 
-          onPress={() => navigation.goBack()} // Navigate back to previous screen
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton} 
+            onPress={() => navigation.goBack()} // Navigate back to previous screen
+          >
+            <MaterialIcons name="arrow-back" size={30} color="#000" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Drinks</Text>
+          <TouchableOpacity 
+            style={styles.searchButton} 
+            onPress={() => setIsSearching(!isSearching)} // Toggle search input visibility
+          >
+            <MaterialIcons name="search" size={30} color="#000" />
+          </TouchableOpacity>
+        </View>
+
+        {isSearching && (
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search drinks..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        )}
+
+        <ScrollView style={{ width: "100%", height: 500 }}>
+          <FlatList
+            data={filteredDrinks}
+            keyExtractor={item => item.id.toString()}
+            renderItem={renderDrinkItem}
+          />
+        </ScrollView>
+
+        <TouchableOpacity
+          style={styles.cartButton}
+          onPress={() => navigation.navigate('CartScreen')}  
         >
-          <MaterialIcons name="arrow-back" size={30} color="#000" />
+          <Text style={styles.cartButtonText}>GO TO CART</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Drinks</Text>
-        <TouchableOpacity 
-          style={styles.searchButton} 
-          onPress={() => setIsSearching(!isSearching)} // Toggle search input visibility
+
+        {/* Confirmation Modal */}
+        <Modal
+          transparent={true}
+          animationType="none"
+          visible={modalVisible}
+          onRequestClose={cancelRemoval}
         >
-          <MaterialIcons name="search" size={30} color="#000" />
-        </TouchableOpacity>
-      </View>
-
-      {isSearching && (
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search drinks..."
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-      )}
-
-      <ScrollView style={{ width: "100%", height: 500 }}>
-        <FlatList
-          data={filteredDrinks}
-          keyExtractor={item => item.id.toString()}
-          renderItem={renderDrinkItem}
-        />
-      </ScrollView>
-
-      <TouchableOpacity
-        style={styles.cartButton}
-        onPress={() => navigation.navigate('CartScreen')}  
-      >
-        <Text style={styles.cartButtonText}>GO TO CART</Text>
-      </TouchableOpacity>
-
-      {/* Confirmation Modal */}
-      <Modal
-        transparent={true}
-        animationType="none"
-        visible={modalVisible}
-        onRequestClose={cancelRemoval}
-      >
-        <Animated.View style={[styles.modalBackground, { opacity: fadeAnim }]}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Confirm</Text>
-            <Text style={styles.modalMessage}>
-              Do you want to cancel "{selectedItem ? selectedItem.name : ''}"?
-            </Text>
-            <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.modalButton} onPress={confirmRemoval}>
-                <Text style={styles.modalButtonText}>Có</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.modalButtonNo} onPress={cancelRemoval}>
-                <Text style={styles.modalButtonTextNo}>Không</Text>
-              </TouchableOpacity>
+          <Animated.View style={[styles.modalBackground, { opacity: fadeAnim }]}>
+            <View style={styles.modalContainer}>
+              <Text style={styles.modalTitle}>Confirm</Text>
+              <Text style={styles.modalMessage}>
+                Do you want to cancel "{selectedItem ? selectedItem.name : ''}"?
+              </Text>
+              <View style={styles.modalButtons}>
+                <TouchableOpacity style={styles.modalButton} onPress={confirmRemoval}>
+                  <Text style={styles.modalButtonText}>Yes</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.modalButtonNo} onPress={cancelRemoval}>
+                  <Text style={styles.modalButtonTextNo}>No</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        </Animated.View>
-      </Modal>
-    </View>
+          </Animated.View>
+        </Modal>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: Platform.OS === 'android' ? 25 : 0,  // Padding for Android devices
     justifyContent: 'space-between',
   },
   header: {
@@ -192,9 +200,8 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginLeft: 10,  
     flex: 1,  
-    textAlign: 'left', 
+    textAlign: 'left',
   },
   searchButton: {
     padding: 10,

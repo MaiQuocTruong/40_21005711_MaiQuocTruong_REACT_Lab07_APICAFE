@@ -7,7 +7,9 @@ import {
   TouchableOpacity, 
   StyleSheet, 
   Modal,
-  Animated
+  Animated,
+  SafeAreaView,
+  Platform
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import minusImage from '../assets/minus_18.png'; 
@@ -113,7 +115,8 @@ export default function CartScreen() {
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
       <View style={styles.header}>
         {/* Back Button */}
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -121,6 +124,7 @@ export default function CartScreen() {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Your Orders</Text>
       </View>
+      
       {cart.length === 0 ? (
         <View style={styles.emptyCartContainer}>
           <Image source={emptyCartImage} style={styles.emptyCartImage} />
@@ -233,15 +237,20 @@ export default function CartScreen() {
         </Animated.View>
       </Modal>
     </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: Platform.OS === 'android' ? 25 : 0,
     justifyContent: 'space-between',
   },
   header: {
@@ -278,23 +287,21 @@ const styles = StyleSheet.create({
   cartItem: {
     flexDirection: 'row',
     backgroundColor: '#fff',
-    marginBottom: 20,
+    marginBottom: 10,
     borderRadius: 10,
     alignItems: 'center',
-    padding: 20,
-    position: 'relative', 
-    overflow: 'hidden',
+    height: 80,
     borderWidth: 1,
     borderColor: '#cccccc',
+    overflow: 'hidden',
   },
   image: {
-    position: 'absolute', 
+    width: 80,
+    height: 80,
+    position: 'absolute',
     left: 0,
     top: 0,
-    width: 100, 
-    height: '100%', 
-    borderTopLeftRadius: 10,
-    borderBottomLeftRadius: 10,
+    borderRadius: 10,
   },
   info: {
     flex: 1,

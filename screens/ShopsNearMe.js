@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Modal, Button, TextInput, FlatList } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Modal, Button, TextInput, FlatList, SafeAreaView, Platform } from 'react-native';
 import axios from 'axios';
 import { MaterialIcons, FontAwesome } from '@expo/vector-icons';
 
@@ -28,100 +28,107 @@ const ShopsNearMe = ({ navigation }) => {
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton} 
-          onPress={() => navigation.goBack()}
-        >
-          <MaterialIcons name="arrow-back" size={30} color="#000" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Shops Near Me</Text>
-        <TouchableOpacity 
-          style={styles.searchButton} 
-          onPress={() => setIsSearching(!isSearching)}
-        >
-          <MaterialIcons name="search" size={30} color="#000" />
-        </TouchableOpacity>
-      </View>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton} 
+            onPress={() => navigation.goBack()}
+          >
+            <MaterialIcons name="arrow-back" size={30} color="#000" />
+          </TouchableOpacity>
 
-      {isSearching && (
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search"
-          value={searchInput}
-          onChangeText={setSearchInput}
-        />
-      )}
+          <Text style={styles.headerTitle}>Shops Near Me</Text>
 
-      <ScrollView style={{ width: "100%", height: 500 }}>
-        <FlatList
-          data={filteredShops}
-          keyExtractor={item => item.id.toString()}
-          renderItem={({ item }) => (
-            <TouchableOpacity style={styles.shopCard} onPress={() => handleShopPress(item)}>
-              <Image source={{ uri: item.image }} style={styles.shopImage} />
-              <View style={styles.shopInfo}>
-                <View style={styles.statusAndTime}>
-                  <Text style={item.isAvailable ? styles.statusAvailable : styles.statusUnavailable}>
-                    <MaterialIcons name={item.isAvailable ? "check-circle" : "lock"} size={16} color={item.isAvailable ? "green" : "red"} />
-                    {` ${item.status}`} 
-                  </Text>
-                  <Text style={styles.deliveryTime}>
-                    <FontAwesome name="clock-o" size={16} color="green" />
-                    {` ${item.delivery_time}`}
-                  </Text>
-                  <View style={styles.locationContainer}>
-                    <FontAwesome name="map-marker" size={20} color="green" />
-                  </View>
-                </View>
-                <Text style={styles.shopName}>{item.name}</Text>
-                <Text style={styles.shopAddress}>{item.address}</Text>
-              </View>
-            </TouchableOpacity>
-          )}
-        />
-      </ScrollView>
-
-      {/* Modal for unavailable shop */}
-      <Modal
-        transparent={true}
-        visible={modalVisible}
-        animationType="slide"
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalText}>Tiệm này đang đóng cửa.</Text>
-            <Button title="Đóng" onPress={() => setModalVisible(false)} />
-          </View>
+          <TouchableOpacity 
+            style={styles.searchButton} 
+            onPress={() => setIsSearching(!isSearching)}
+          >
+            <MaterialIcons name="search" size={30} color="#000" />
+          </TouchableOpacity>
         </View>
-      </Modal>
-    </View>
+
+        {isSearching && (
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search"
+            value={searchInput}
+            onChangeText={setSearchInput}
+          />
+        )}
+
+        <ScrollView style={{ width: "100%", height: 500 }}>
+          <FlatList
+            data={filteredShops}
+            keyExtractor={item => item.id.toString()}
+            renderItem={({ item }) => (
+              <TouchableOpacity style={styles.shopCard} onPress={() => handleShopPress(item)}>
+                <Image source={{ uri: item.image }} style={styles.shopImage} />
+                <View style={styles.shopInfo}>
+                  <View style={styles.statusAndTime}>
+                    <Text style={item.isAvailable ? styles.statusAvailable : styles.statusUnavailable}>
+                      <MaterialIcons name={item.isAvailable ? "check-circle" : "lock"} size={16} color={item.isAvailable ? "green" : "red"} />
+                      {` ${item.status}`} 
+                    </Text>
+                    <Text style={styles.deliveryTime}>
+                      <FontAwesome name="clock-o" size={16} color="green" />
+                      {` ${item.delivery_time}`}
+                    </Text>
+                    <View style={styles.locationContainer}>
+                      <FontAwesome name="map-marker" size={20} color="green" />
+                    </View>
+                  </View>
+                  <Text style={styles.shopName}>{item.name}</Text>
+                  <Text style={styles.shopAddress}>{item.address}</Text>
+                </View>
+              </TouchableOpacity>
+            )}
+          />
+        </ScrollView>
+
+        {/* Modal for unavailable shop */}
+        <Modal
+          transparent={true}
+          visible={modalVisible}
+          animationType="slide"
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalText}>Tiệm này đang đóng cửa.</Text>
+              <Button title="Đóng" onPress={() => setModalVisible(false)} />
+            </View>
+          </View>
+        </Modal>
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    padding: 20,
+    paddingHorizontal: 20,
   },
   header: {
-    flexDirection: 'row',  
-    alignItems: 'center',  
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between', 
-    marginBottom: 10,
+    marginBottom: 20,  
+    paddingTop: Platform.OS === 'android' ? 25 : 0,  // Padding for Android devices
   },
   backButton: {
     padding: 10,
-    marginLeft: '-3%',
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginLeft: 10,  
     flex: 1,  
-    textAlign: 'left',  
+    textAlign: 'center',
   },
   searchButton: {
     padding: 10,
@@ -214,6 +221,5 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 });
-
 
 export default ShopsNearMe;
