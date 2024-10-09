@@ -30,7 +30,7 @@ export default function DrinksScreen() {
   const fadeAnim = useState(new Animated.Value(0))[0];
 
   useEffect(() => {
-    axios.get('http://localhost:5000/drinks')
+    axios.get('https://67022ea1b52042b542d96150.mockapi.io/drinks')
       .then(response => setDrinks(response.data))
       .catch(error => console.error(error));
   }, []);

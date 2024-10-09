@@ -9,7 +9,7 @@ const Home = ({ navigation }) => {  // Thêm prop navigation vào đây
 
   useEffect(() => {
     // Fetch shops data
-    axios.get('http://localhost:5000/shops')
+    axios.get('https://67022ea1b52042b542d96150.mockapi.io/shops')
       .then(response => {
         setShops(response.data);
       })
@@ -76,6 +76,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%', // Full width to avoid shifting of content
+    marginTop: '10%',
   },
   title: {
     fontSize: 24,

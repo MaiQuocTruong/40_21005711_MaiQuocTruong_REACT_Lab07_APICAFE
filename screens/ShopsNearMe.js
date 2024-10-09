@@ -10,7 +10,7 @@ const ShopsNearMe = ({ navigation }) => {
   const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
-    axios.get('http://localhost:5000/shops')
+    axios.get('https://67022ea1b52042b542d96150.mockapi.io/shops')
       .then(response => setShops(response.data))
       .catch(error => console.error(error));
   }, []);
