@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Modal, Button, TextInput, FlatList, SafeAreaView, Platform } from 'react-native';
 import axios from 'axios';
 import { MaterialIcons, FontAwesome } from '@expo/vector-icons';
+import { database } from '../config/firebaseConfig'; // Import the database
+import { ref, onValue } from 'firebase/database';
 
 const ShopsNearMe = ({ navigation }) => {
   const [shops, setShops] = useState([]);
@@ -9,12 +11,24 @@ const ShopsNearMe = ({ navigation }) => {
   const [searchInput, setSearchInput] = useState('');
   const [isSearching, setIsSearching] = useState(false);
 
-  useEffect(() => {
-    axios.get('https://67022ea1b52042b542d96150.mockapi.io/shops')
-      .then(response => setShops(response.data))
-      .catch(error => console.error(error));
-  }, []);
+  // useEffect(() => {
+  //   axios.get('https://67022ea1b52042b542d96150.mockapi.io/shops')
+  //     .then(response => setShops(response.data))
+  //     .catch(error => console.error(error));
+  // }, []);
 
+  useEffect(() => {
+    // Fetch shops data from Firebase
+    const shopsRef = ref(database, 'shops'); // Reference to the shops in your database
+    onValue(shopsRef, (snapshot) => {
+      const data = snapshot.val();
+      const shopsArray = data ? Object.values(data) : []; // Convert object to array
+      setShops(shopsArray);
+    }, {
+      onlyOnce: true // Fetch data once
+    });
+  }, []);
+  
   const handleShopPress = (shop) => {
     if (shop.isAvailable) {
       navigation.navigate('DrinksScreen');

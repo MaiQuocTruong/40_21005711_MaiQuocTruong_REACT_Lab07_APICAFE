@@ -1,34 +1,35 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import axios from 'axios';
+import { database } from '../config/firebaseConfig'; // Import the database
+import { ref, onValue } from 'firebase/database'; // Import the necessary functions from Firebase
 import TypeWriter from 'react-native-typewriter';
 
-const Home = ({ navigation }) => {  // Thêm prop navigation vào đây
+const Home = ({ navigation }) => {
   const [shops, setShops] = useState([]);
-  const [displayTitle, setDisplayTitle] = useState('Welcome to Cafe World'); // State to handle title change
+  const [displayTitle, setDisplayTitle] = useState('Welcome to Cafe World');
 
   useEffect(() => {
-    // Fetch shops data
-    axios.get('https://67022ea1b52042b542d96150.mockapi.io/shops')
-      .then(response => {
-        setShops(response.data);
-      })
-      .catch(error => {
-        console.log(error);
-      });
+    // Fetch shops data from Firebase
+    const shopsRef = ref(database, 'shops'); // Reference to the shops in your database
+    onValue(shopsRef, (snapshot) => {
+      const data = snapshot.val();
+      const shopsArray = data ? Object.values(data) : []; // Convert object to array
+      setShops(shopsArray);
+    }, {
+      onlyOnce: true // Fetch data once
+    });
 
     // Set interval to update the title
     const interval = setInterval(() => {
       setDisplayTitle(prevTitle => prevTitle === 'Welcome to Cafe World' ? 'Cafe World Awaits You!' : 'Welcome to Cafe World');
-    }, 3000); // Change title every 3 seconds
+    }, 3000);
 
     // Cleanup the interval on component unmount
     return () => clearInterval(interval);
   }, []);
 
-  // Function to render the title with the "Cafe World" part in brown
   const renderTitle = (title) => {
-    const parts = title.split('Cafe World'); // Split the title into two parts
+    const parts = title.split('Cafe World');
     return (
       <Text style={styles.title}>
         {parts[0]}
@@ -40,14 +41,13 @@ const Home = ({ navigation }) => {  // Thêm prop navigation vào đây
 
   return (
     <View style={styles.container}>
-      {/* Title container with fixed height */}
       <View style={styles.titleContainer}>
         <TypeWriter typing={1} minDelay={100} style={styles.title}>
           {renderTitle(displayTitle)}
         </TypeWriter>
       </View>
       <ScrollView contentContainerStyle={styles.shopList}>
-        {shops.slice(0, 3).map((shop) => ( //get 3 shop in shops list
+        {shops.slice(0, 3).map((shop) => (
           <View key={shop.id} style={styles.shopContainer}>
             <Image source={{ uri: shop.image }} style={styles.shopImage} />
           </View>
@@ -55,7 +55,7 @@ const Home = ({ navigation }) => {  // Thêm prop navigation vào đây
       </ScrollView>
       <TouchableOpacity 
         style={styles.button}
-        onPress={() => navigation.navigate('ShopsNearMe')} // Điều hướng đến ShopsNearMe khi bấm
+        onPress={() => navigation.navigate('ShopsNearMe')}
       >
         <Text style={styles.buttonText}>Get Started</Text>
       </TouchableOpacity>
@@ -72,24 +72,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   titleContainer: {
-    height: 60, // Fixed height for the title container
+    height: 60,
     justifyContent: 'center',
     alignItems: 'center',
-    width: '100%', // Full width to avoid shifting of content
+    width: '100%',
     marginTop: '10%',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: 'black', // Default color for the rest of the text
+    color: 'black',
   },
   cafeWorld: {
-    color: '#8B4513', // Brown color for "Cafe World"
+    color: '#8B4513',
   },
   shopList: {
     justifyContent: 'center',
     alignItems: 'center',
-    flexGrow: 1, 
+    flexGrow: 1,
   },
   shopContainer: {
     marginBottom: 20,
@@ -101,11 +101,11 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: '#00c4cc',
-    width: 300,  
+    width: 300,
     paddingVertical: 15,
     borderRadius: 10,
-    alignItems: 'center',  
-    marginBottom: 50,  
+    alignItems: 'center',
+    marginBottom: 50,
   },
   buttonText: {
     color: '#fff',
